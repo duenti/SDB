@@ -1,0 +1,4 @@
+.contains {
+	overflow: auto;
+	overflow-y: hidden;
+}
