@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'sdb_django.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sdb_django',
+        'NAME': 'pfam_32_0',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': '127.0.0.1',

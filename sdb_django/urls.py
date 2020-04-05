@@ -20,6 +20,6 @@ from sdb.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    url(r'^$', page_load, {'template_name': 'index.html'}),
+    url(r'^$', home_load),
     url(r'family/(?P<family>PF\d+)', family_load),
 ]

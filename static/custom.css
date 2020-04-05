@@ -22,10 +22,21 @@ h2{
     padding: 30px 0;
 }
 
+.pagination {
+  display: inline-block;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+
 /* Table Styles */
 
 .table-wrapper{
-    margin: 10px 70px 70px;
+    /*margin: 10px 70px 70px;*/
     box-shadow: 0px 35px 50px rgba( 0, 0, 0, 0.2 );
 }
 
@@ -130,8 +141,38 @@ h2{
         display: block;
         text-align: center;
     }
+
 }
+
+/*
+.fl-table tr:hover{
+    background-color: #34bbf5 !important;
+    border-style: solid;
+    border-color: black;
+    border-radius: 1px;
+}
+*/
+
+.fl-table a{
+    color: black;
+    border: none;
+}
+
+.ref_link{
+    color:black;
+    border:none;
+}
+
+
+
 
 #select_cut{
     min-width: 50px;
+}
+
+#comm_list{
+    background-color: red;
+    width: 30%;
+    height: 450px;
+    float: left;
 }

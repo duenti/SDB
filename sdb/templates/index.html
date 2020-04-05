@@ -15,94 +15,102 @@
             consequat etiam lorem ipsum dolor sit amet nullam.</p>
         </article>
 
-        <h2>Responsive Table</h2>
-        <div class="table-wrapper">
-            <table class="fl-table">
-                <thead>
-                <tr>
-                    <th>Header 1</th>
-                    <th>Header 2</th>
-                    <th>Header 3</th>
-                    <th>Header 4</th>
-                    <th>Header 5</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>Content 1</td>
-                    <td>Content 1</td>
-                    <td>Content 1</td>
-                    <td>Content 1</td>
-                    <td>Content 1</td>
-                </tr>
-                <tr>
-                    <td>Content 2</td>
-                    <td>Content 2</td>
-                    <td>Content 2</td>
-                    <td>Content 2</td>
-                    <td>Content 2</td>
-                </tr>
-                <tr>
-                    <td>Content 3</td>
-                    <td>Content 3</td>
-                    <td>Content 3</td>
-                    <td>Content 3</td>
-                    <td>Content 3</td>
-                </tr>
-                <tr>
-                    <td>Content 4</td>
-                    <td>Content 4</td>
-                    <td>Content 4</td>
-                    <td>Content 4</td>
-                    <td>Content 4</td>
-                </tr>
-                <tr>
-                    <td>Content 5</td>
-                    <td>Content 5</td>
-                    <td>Content 5</td>
-                    <td>Content 5</td>
-                    <td>Content 5</td>
-                </tr>
-                <tr>
-                    <td>Content 6</td>
-                    <td>Content 6</td>
-                    <td>Content 6</td>
-                    <td>Content 6</td>
-                    <td>Content 6</td>
-                </tr>
-                <tr>
-                    <td>Content 7</td>
-                    <td>Content 7</td>
-                    <td>Content 7</td>
-                    <td>Content 7</td>
-                    <td>Content 7</td>
-                </tr>
-                <tr>
-                    <td>Content 8</td>
-                    <td>Content 8</td>
-                    <td>Content 8</td>
-                    <td>Content 8</td>
-                    <td>Content 8</td>
-                </tr>
-                <tr>
-                    <td>Content 9</td>
-                    <td>Content 9</td>
-                    <td>Content 9</td>
-                    <td>Content 9</td>
-                    <td>Content 9</td>
-                </tr>
-                <tr>
-                    <td>Content 10</td>
-                    <td>Content 10</td>
-                    <td>Content 10</td>
-                    <td>Content 10</td>
-                    <td>Content 10</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
 
+
+        <h2>Protein Families</h2>
+        <div id="pfam_content" class="container">
+            <nav id="pagination">
+                <ul class="pagination">
+                    {% if pfam_list.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ pfam_list.previous_page_number }}"><</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true"><</a>
+                        </li>
+                    {% endif %}
+                    {% for i in pfam_list.paginator.page_range %}
+                        {% if i <= pfam_list.number|add:5 and i >= pfam_list.number|add:-5 %}
+                            {% if pfam_list.number == i %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    {% if pfam_list.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ pfam_list.next_page_number }}">></a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">></a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <div class="table-wrapper">
+                <table class="fl-table">
+                    <thead>
+                    <tr>
+                        <th>Accession</th>
+                        <th>Pfam_id</th>
+                        <th>Type</th>
+                        <th>Seed Source</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for pfam in pfam_list %}
+                        <tr>
+                            <td><a href="family/{{ pfam.pfama_acc }}">{{ pfam.pfama_acc }}</a></td>
+                            <td><a href="family/{{ pfam.pfama_acc }}">{{ pfam.pfama_id }}</a></td>
+                            <td><a href="family/{{ pfam.pfama_acc }}">{{ pfam.type }}</a></td>
+                            <td><a href="family/{{ pfam.pfama_acc }}">{{ pfam.seed_source|truncatechars:20 }}</a></td>
+                            <td><a href="family/{{ pfam.pfama_acc }}">{{ pfam.description }}</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
         <a href="#" class="button">More Random Links</a>
 
     </div>
+
+    <script type="text/javascript">
+
+        function ajaxPagination() {
+            $('#pagination a.page-link').each((index,el) => {
+                $(el).click((e) => {
+                    e.preventDefault();
+                    let page_url = $(el).attr('href');
+
+                    $.ajax({
+                        url: page_url,
+                        type: 'GET',
+                        success: (data) => {
+                            $("#pfam_content").empty();
+                            //console.log($(data).find("#pagination").html());
+                            $("#pfam_content").append($(data).find("#pfam_content").html());
+                            //$("#pagination").append($(data).filter('#pagination').html());
+                        }
+                    })
+                })
+            })
+        }
+
+        $(document).ready(function () {
+            ajaxPagination();
+        });
+        $(document).ajaxStop(function () {
+            ajaxPagination();
+        })
+    </script>
 {% endblock %}
