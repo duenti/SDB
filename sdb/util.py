@@ -1,5 +1,7 @@
 from sdb.models import *
 from django.db import connection
+from sdb_django.settings import FTP_DIR
+import pickle
 
 refs_SQL = """
 SELECT literature_reference.auto_lit,
@@ -60,6 +62,35 @@ SELECT *
 FROM pfam_32_0.other_reg AS t
 WHERE t.pfamseq_acc='{seqname}'
 """
+
+def getAlignSequence(pfam_id, fullseq_id):
+    # Load MSA
+    msa_dir = FTP_DIR + pfam_id + "/msa.dic"
+    with open(msa_dir, 'rb') as config_dictionary_file:
+        msa = pickle.load(config_dictionary_file)
+        if fullseq_id in msa:
+            return msa[fullseq_id]
+    return ""
+
+def alignCommunity2SeqCommunity(comm_str, sequence, seq_start):
+    residues = comm_str.split()
+    matches = ""
+    missmatches = ""
+
+    for residue in residues:
+        comm_aa = residue[0]
+        comm_pos = int(residue[2:])
+        ams_aa = sequence[comm_pos-1]
+        seq_pos = (len(sequence[:comm_pos].replace('.','').replace('-',''))-1)+seq_start
+        if comm_aa == ams_aa:
+            matches += ams_aa + str(seq_pos) + " "
+        else:
+            missmatches += ams_aa + str(seq_pos) + "(" + comm_aa + ") "
+
+    return matches, missmatches
+
+
+
 
 
 def getReferences(pfam_id):

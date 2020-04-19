@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from sdb.models import *
-from sdb.util import getReferences, generateProtVista, generateProtVistaSequence
+from sdb.util import *
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 import pickle
+from sdb_django.settings import FTP_DIR
 
 # 'global' variable storing amount of objects per page
 per_page = 25
-FTP_DIR="/Volumes/Fast SSD/Pfam32/"
+
 
 
 # Create your views here.
@@ -113,7 +114,8 @@ def family_load(request,family):
 def sequence_load(request,sequence_name):
     context = {}
     context['name'] = sequence_name
-    context['uniprot'] = Uniprot.objects.get(uniprot_acc=sequence_name)
+    uniprot = Uniprot.objects.get(uniprot_acc=sequence_name)
+    context['uniprot'] = uniprot
 
     #TEMP
     score = 0.6
@@ -137,18 +139,24 @@ def sequence_load(request,sequence_name):
                 interval_str = str(pos_start) + " - " + str(pos_end)
                 #print(interval_str)
 
-                conformations = Conformation.objects.filter(pfam_id=pfam_id)
-                if len(conformations) > 0:
-                    current_conformation = conformations.all()[0]  # TEMP
-                    ams_communities = current_conformation.community_set.all()
-                    if ams_communities.count() > 0:
-                        interval_comm = []
-                        for community in ams_communities:
-                            interval_comm.append(community.residues)
-                        pfam_communities[pfam_id].append((interval_str,interval_comm))
-    context['pfam_communities'] = pfam_communities
-    print(pfam_communities)
+                fullseq_id = uniprot.uniprot_id + "/" + str(pos_start) + "-" + str(pos_end)
+                align_seq = getAlignSequence(pfam_id, fullseq_id)
+                if len(align_seq) > 0:
+                    conformations = Conformation.objects.filter(pfam_id=pfam_id)
+                    if len(conformations) > 0:
+                        current_conformation = conformations.all()[0]  # TEMP
+                        ams_communities = current_conformation.community_set.all()
+                        if ams_communities.count() > 0:
+                            interval_comm = []
+                            for community in ams_communities:
+                                matches, missmatches = alignCommunity2SeqCommunity(community.residues, align_seq, pos_start)
+                                comm_str = "<span style='color:darkgreen;'>" + matches + "</span>"
+                                if len(missmatches) > 0:
+                                    comm_str += " <span style='color:red;'>[ " + missmatches + "]</span>"
+                                interval_comm.append(comm_str)
 
+                            pfam_communities[pfam_id].append((interval_str,interval_comm))
+    context['pfam_communities'] = pfam_communities
 
         # conformations = Conformation.objects.filter(pfam_id=pfam_id)
         # if len(conformations) > 0:

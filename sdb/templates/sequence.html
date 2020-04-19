@@ -50,7 +50,7 @@
                                 {% for comm in interval|get1 %}
                                     <tr>
                                         <td>Community {{ forloop.counter }}</td>
-                                        <td>{{ comm|fix_residue }}</td>
+                                        <td>{{ comm|safe }}</td>
                                     </tr>
                                 {% endfor %}
                                 </tbody>
