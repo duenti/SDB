@@ -22,4 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^$', home_load),
     url(r'family/(?P<family>PF\d+)', family_load),
+    url(r'sequence/(?P<sequence_name>.*)', sequence_load),
+
 ]

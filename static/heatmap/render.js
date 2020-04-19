@@ -1,28 +1,28 @@
-$( document ).ready(function() {
-	draw_hm();
-});
-
-function draw_hm(){
-	    var residues = data["residues"];
+function draw_hm(target, data, i){
+      var residues = data["residues"];
       var residues_conservation = residues.slice();
       residues_conservation.unshift("");
       residues_conservation.unshift("Conservation");
       var matrix = data["data"];
       var num = matrix.length;
-      
+
       var width = (num+2)*40;
       var height = num*40;
       //create svg
+      var thisg = "thisg" + i;
+      var thisg_id = "#" + thisg;
+      var thissvg = "thissvg" + i;
+      var thissvg_id = "#" + thissvg;
 
-      $("#table").empty();
+      $(target).empty();
 
-      var svg = d35.select("#table").append("svg")
+      var svg = d35.select(target).append("svg")
                                  .attr("width", width+10)
                                  .attr("height", height)
-                                 .attr("id", "thissvg")
+                                 .attr("id", thissvg)
                                 //  .style("margin-left", -margin.left + "px")
                                  .append("g")
-                                 .attr("id", "thisg");
+                                 .attr("id", thisg);
                                  //.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
      svg.append("rect")
@@ -168,20 +168,20 @@ function draw_hm(){
         var bbox = ele.getBoundingClientRect();
         wh.h = (wh.h<bbox.height) ? bbox.height :wh.h;
       });
-      d35.select("#thisg").attr("transform", "translate(" + (wh.w + 24) + "," + (wh.h + 24) + ")");
-      var g_width = d35.select("#thisg").node().getBoundingClientRect().width;
-      var svg_width = d35.select("#thissvg").node().getBoundingClientRect().width;
-      var g_height = d35.select("#thisg").node().getBoundingClientRect().height;
-      var svg_height = d35.select("#thissvg").node().getBoundingClientRect().height;
+      d35.select(thisg_id).attr("transform", "translate(" + (wh.w + 24) + "," + (wh.h + 24) + ")");
+      var g_width = d35.select(thisg_id).node().getBoundingClientRect().width;
+      var svg_width = d35.select(thissvg_id).node().getBoundingClientRect().width;
+      var g_height = d35.select(thisg_id).node().getBoundingClientRect().height;
+      var svg_height = d35.select(thissvg_id).node().getBoundingClientRect().height;
       if (g_width > svg_width) {
-        d35.select("#thissvg").attr("width", g_width);
+        d35.select(thissvg_id).attr("width", g_width + 20);
       }
       if ( (g_height) > svg_height) {
-        d35.select("#thissvg").attr("height", g_height);
+        d35.select(thissvg_id).attr("height", g_height);
       }
 
      //Ajust size
-     $('#thissvg').width($('#thissvg').width()+10)
+     $(thissvg_id).width($(thissvg_id).width()+10)
 }
 
 function wrap(text, width) {

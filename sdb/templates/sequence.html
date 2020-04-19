@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load tags %}
+
+{% block title %}
+    SDB: Specificity Determinant Data Base &lt; Sequence
+{% endblock %}
+
+{% block links %}
+    <link rel="stylesheet" href="{% static 'feature-viewer/feature-viewer.min.css' %}" type="text/css">
+    <script src="{% static 'feature-viewer/d3.v3.min.js' %}"></script>
+    <script src="{% static 'feature-viewer/bootstrap.min.js' %}"></script>
+    <script src="{% static 'feature-viewer/feature-viewer.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <div id="content">
+        <h1>{{ uniprot.description|removeBrackets }}</h1>
+        <div id="content_basic" style="margin-left: 20px">
+            <b>Name:</b> {{ name }}<br>
+            <b>Uniprot ID:</b> <a href="https://www.uniprot.org/uniprot/{{ uniprot.uniprot_id }}" target="_blank">{{ uniprot.uniprot_id }}</a><br>
+            <b>Length:</b> {{ uniprot.length }}<br>
+            <b>Species:</b> <a href="https://www.ebi.ac.uk/ena/data/view/Taxon:{{ uniprot.ncbi_taxid }}" target="_blank">{{ uniprot.species }}<br></a>
+            <span style="margin-left: 20px">{{ uniprot.taxonomy }}</span><br>
+        </div>
+        <div id="comment" style="margin-top: 10px"></div>
+
+        <div id="protvista">
+            <div id="fv1"></div>
+            <script>
+                {{ prot_vist_src|safe }}
+            </script>
+        </div>
+
+        <div id="families" style="margin-top: 20px">
+            {% for current_pfam in pfam_acc_list %}
+                {% with current_pfam_id=current_pfam.pfama_acc %}
+                    <h2>{{ current_pfam_id }}</h2>
+                    <div>
+                        {% for interval in pfam_communities|keyvalue:current_pfam_id %}
+                            <h3>{{ interval|get0 }}</h3>
+                            <table class="fl-table">
+                                <thead>
+                                <tr>
+                                    <th>Community</th>
+                                    <th>Residues</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for comm in interval|get1 %}
+                                    <tr>
+                                        <td>Community {{ forloop.counter }}</td>
+                                        <td>{{ comm|fix_residue }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endfor %}
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block foot_links %}
+<script>
+$(function() {
+     var URL = "https://www.uniprot.org/uniprot/{{ name }}.xml";
+     $.ajax({
+        url: URL,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        type: "GET", /* or type:"GET" or type:"PUT" */
+        dataType: "xml",
+        crossDomain: true,
+        data: {
+        },
+        success: function (result) {
+            $("#comment").empty();
+            let comments = $(result).find("comment");
+            let info = "";
+            let html = "";
+
+            for(var i = 0; i < comments.length; i++){
+                let comment = comments[i]
+                let type = comment.getAttribute("type");
+                if(type === "cofactor"){
+                    type = type.charAt(0).toUpperCase() + type.slice(1);
+                    let name = $(comment).find('name').text();
+                    let text = $(comment).find('text').text();
+                    info += "<b>" + type + ":</b> " + name;
+                    if(text.length > 0){
+                        info += " (" + text + ")";
+                    }
+                    info += "<br>";
+                }else {
+                    type = type.charAt(0).toUpperCase() + type.slice(1);
+                    let content = $(comment).find('text').text();
+                    if(content.length > 0) {
+                        html += "<b>" + type + ":</b>";
+                        html += "<p>" + content + "</p>"
+                    }
+                }
+            }
+            $("#content_basic").append(info);
+            $("#comment").append(html);
+        },
+        error: function () {
+            console.log("error");
+        }
+    });
+ });
+</script>
+{% endblock %}

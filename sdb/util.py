@@ -37,6 +37,30 @@ and t3.pfamseq_acc = t1.pfamseq_acc
 and (t1.auto_markup=1 or t1.auto_markup=4)
 """
 
+disulfide_sequence_SQL = """
+SELECT
+    (@cnt := @cnt + 1) AS id,
+    t.*
+FROM pfam_32_0.pfamseq_disulphide AS t
+CROSS JOIN (SELECT @cnt := 0) AS dummy
+WHERE t.pfamseq_acc='{seqname}'
+"""
+
+sites_sequence_SQL = """
+SELECT
+    (@cnt := @cnt + 1) AS id,
+    t.*
+FROM pfam_32_0.pfamseq_markup AS t
+CROSS JOIN (SELECT @cnt := 0) AS dummy
+WHERE t.pfamseq_acc='{seqname}'
+"""
+
+region_sequence_SQL = """
+SELECT *
+FROM pfam_32_0.other_reg AS t
+WHERE t.pfamseq_acc='{seqname}'
+"""
+
 
 def getReferences(pfam_id):
     sql = refs_SQL.format(pfam_id=pfam_id)
@@ -79,17 +103,17 @@ def parseDisulfide(pfam_id, msa):
 
     for name, s_start, s_end, b_start, b_end in result:
         seqname = name + "/" + str(s_start) + "-" + str(s_end)
-        pos1 = seq2alignPosition(msa[seqname], b_start, s_start)
-        pos2 = seq2alignPosition(msa[seqname], b_end, s_start)
+        if seqname in msa:
+            pos1 = seq2alignPosition(msa[seqname], b_start, s_start)
+            pos2 = seq2alignPosition(msa[seqname], b_end, s_start)
 
-        if pos1 > 0 and pos2 > 0:
-            print(seqname + " " + str(b_start) + " " + str(b_end))
-            bonds.add((pos1, pos2))
+            if pos1 > 0 and pos2 > 0:
+                bonds.add((pos1, pos2, ''))
 
     return bonds
 
 def parseSites(pfam_id, msa):
-    sites = set()
+    sites = (set(),set())#0 - Active, 1 - Metal Ion
 
     sql = sites_SQL.format(pfam_id=pfam_id)
 
@@ -99,15 +123,159 @@ def parseSites(pfam_id, msa):
 
     for name, s_start, s_end, residue, type, annotation in result:
         seqname = name + "/" + str(s_start) + "-" + str(s_end)
-        pos = seq2alignPosition(msa[seqname], residue, s_start)
+        if seqname in msa:
+            pos = seq2alignPosition(msa[seqname], residue, s_start)
 
-        if pos > 0:
-            sites.add((pos, type, annotation))
+            if pos > 0:
+                if type == 1:
+                    sites[0].add((pos, pos, annotation))
+                elif type == 4:
+                    sites[1].add((pos, pos, annotation))
 
     return sites
 
-# def generateProtVista2(pfam_id):
+def parseCommunity(community):
+    comm = set()
 
+    for residue in community:
+        aa = residue[0]
+        pos = int(residue[1:])
+        comm.add((pos,pos,residue))
+
+    return comm
+
+def createAddFeatureJS(name, className, color, type, filter, data):
+    js = ""
+
+    if len(data) > 0:
+        js += "ft2.addFeature({"
+        js += "name: \"" + name + "\","
+        js += "className: \"" + className + "\","
+        js += "color: \"" + color + "\","
+        js += "type: \"" + type + "\","
+        js += "filter: \"" + filter + "\","
+        js += "data: ["
+
+        for pos1, pos2, desc in data:
+            if desc == "":
+                js += "{x:" + str(pos1) + ",y:" + str(pos2) + "},"
+            else:
+                js += "{x:" + str(pos1) + ",y:" + str(pos2) + ",description:\"" + desc + "\"},"
+        js += "]});";
+
+    return js
+
+def generateProtVista(pfam, msa, conformation):
+    js = ""
+
+    js += "var ft2 = new FeatureViewer(\"" + pfam.full_consensus + "\",\"#fv1\", {"
+    js += "showAxis: true,"
+    js += "showSequence: true,"
+    js += "brushActive: true,"
+    js += "toolbar:false,"
+    js += "bubbleHelp:true,"
+    js += "zoomMax:10"
+    js += "});"
+
+    bonds = parseDisulfide(pfam.pfama_id,msa)
+    active_sites, ion_sites = parseSites(pfam.pfama_id,msa)
+
+    communities = conformation.community_set.all()
+    N = len(communities)
+    for i,comm in enumerate(communities):
+        residues = comm.get_residues()
+        community = parseCommunity(residues)
+        js += createAddFeatureJS("Community " + str(i+1), "comm", pickColor(i), "rect", "type1", community)
+
+    js += createAddFeatureJS("Disulfide","disulfide",pickColor(N),"path","type1",bonds)
+    js += createAddFeatureJS("Active Site", "active", pickColor(N+1), "rect", "type1", active_sites)
+    js += createAddFeatureJS("Metal Binding", "metal", pickColor(N+2), "rect", "type1", ion_sites)
+
+    return js
+
+def generateProtVistaSequence(sequence):
+    uniprot = Uniprot.objects.get(uniprot_acc=sequence)
+    js = ""
+
+    js += "var ft2 = new FeatureViewer(\"" + uniprot.sequence.decode("utf-8")  + "\",\"#fv1\", {"
+    js += "showAxis: true,"
+    js += "showSequence: true,"
+    js += "brushActive: true,"
+    js += "toolbar:false,"
+    js += "bubbleHelp:true,"
+    js += "zoomMax:10"
+    js += "});"
+
+    #Disulfide
+    sql = disulfide_sequence_SQL.format(seqname=sequence)
+    results = PfamseqDisulphide.objects.raw(sql)
+    bonds = []
+    for result in results:
+        bonds.append((result.bond_start,result.bond_end,''))
+
+    #Sites
+    sql = sites_sequence_SQL.format(seqname=sequence)
+    results = PfamseqMarkup.objects.raw(sql)
+    sites = set()
+    for result in results:
+        if result.auto_markup < 4:
+            sites.add((result.residue,result.residue,"Active site"))
+        else:
+            sites.add((result.residue, result.residue, result.annotation))
+
+    #Other regions
+    sql = region_sequence_SQL.format(seqname=sequence)
+    coiled_coil = set()
+    disorder = set()
+    low_complexity = set()
+    sig_p = set()
+    transmembrane = set()
+    results = OtherReg.objects.raw(sql)
+    for result in results:
+        if result.type_id == 'coiled_coil':
+            coiled_coil.add((result.seq_start, result.seq_end, ''))
+        elif result.type_id == 'disorder':
+            disorder.add((result.seq_start, result.seq_end, ''))
+        elif result.type_id == 'low_complexity':
+            low_complexity.add((result.seq_start, result.seq_end, ''))
+        elif result.type_id == 'sig_p':
+            sig_p.add((result.seq_start, result.seq_end, ''))
+        elif result.type_id == 'transmembrane':
+            transmembrane.add((result.seq_start, result.seq_end, ''))
+
+    # Pfams
+    pfams = []
+    regions = UniprotRegFull.objects.filter(uniprot_acc=sequence)
+    unique_pfams = regions.values('pfama_acc').distinct()
+    for current_pfam in unique_pfams:
+        current_pfam_id = current_pfam['pfama_acc']
+        interval_list = []
+        pfam_set = regions.filter(pfama_acc=current_pfam_id).order_by("seq_start")
+        for region in pfam_set:
+            interval_list.append((region.seq_start, region.seq_end, region.pfama_acc))
+        if len(interval_list) > 0:
+            pfams.append((current_pfam_id,interval_list))
+
+    #Pfams
+    # pfams = []
+    # regions = UniprotRegFull.objects.filter(uniprot_acc=sequence)
+    # for region in regions:
+    #     pfams.append((region.seq_start, region.seq_end, region.pfama_acc))
+
+
+    js += createAddFeatureJS("Disulfide", "disulfide", pickColor(0), "path", "type1", bonds)
+    js += createAddFeatureJS("Coiled coil", "active", pickColor(1), "rect", "type1", coiled_coil)
+    js += createAddFeatureJS("Sites", "active", pickColor(2), "rect", "type1", sites)
+    js += createAddFeatureJS("Disorder", "active", pickColor(3), "rect", "type1", disorder)
+    js += createAddFeatureJS("Low complexity", "active", pickColor(4), "rect", "type1", low_complexity)
+    js += createAddFeatureJS("Signal peptide", "active", pickColor(5), "rect", "type1", sig_p)
+    js += createAddFeatureJS("Transmembrane", "active", pickColor(6), "rect", "type1", transmembrane)
+    #js += createAddFeatureJS("Pfam", "active", pickColor(7), "rect", "type1", pfams)
+
+    for i,(pfam_id,pfam) in enumerate(pfams):
+        js += createAddFeatureJS(pfam_id, "active", pickColor(7+i), "rect", "type1", pfam)
+
+    return js
 
 def getPfamList(start, end):
     total = Pfama.objects.count()
@@ -151,7 +319,7 @@ def pickColor(i):
         return kelly_colors_hex[i % 20]
 
 
-def generate_protvista_js(conf):
+def generate_protvista_js2(conf):
     js = ""
     temp_seq = Offset.objects.all()[0]
 

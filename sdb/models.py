@@ -842,3 +842,23 @@ class Wikipedia(models.Model):
     class Meta:
         managed = False
         db_table = 'wikipedia'
+
+
+###Coev
+class Conformation(models.Model):
+    pfam_id = models.CharField(db_index=True, max_length=7)
+    score = models.FloatField()#Cut value
+    N = models.IntegerField()
+
+class Community(models.Model):
+    residues = models.TextField()
+    conformation = models.ForeignKey(Conformation,on_delete=models.CASCADE)
+
+    def get_residues(self):
+        return self.residues.replace("_","").split()
+
+    def get_residues_str(self):
+        self.residues.replace("_","")
+
+    def __str__(self):
+        self.residues.replace("_","")

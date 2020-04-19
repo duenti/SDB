@@ -48,7 +48,7 @@ h2{
     border-collapse: collapse;
     width: 100%;
     max-width: 100%;
-    white-space: nowrap;
+    /*white-space: nowrap;*/
     background-color: white;
 }
 
@@ -163,6 +163,9 @@ h2{
     border:none;
 }
 
+.margin_top{
+    margin-top: 20px;
+}
 
 
 

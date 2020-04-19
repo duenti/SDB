@@ -3,21 +3,10 @@
 {% load tags %}
 
 {% block title %}
-    SDB: Specificity Determinant Data Base &lt; Family
+    SDB: Specificity Determinant Data Base &lt; Community
 {% endblock %}
 
 {% block links %}
-    <link rel="stylesheet" href="{% static 'heatmap/heat.css' %}" type="text/css">
-    <script src="{% static 'heatmap/d3.v5.min.js' %}"></script>
-    <script src="{% static 'heatmap/data.js' %}"></script>
-    <script>
-        d35 = d3;
-        window.d3 = null;
-    </script>
-    <link rel="stylesheet" href="{% static 'feature-viewer/feature-viewer.min.css' %}" type="text/css">
-    <script src="{% static 'feature-viewer/d3.v3.min.js' %}"></script>
-    <script src="{% static 'feature-viewer/bootstrap.min.js' %}"></script>
-    <script src="{% static 'feature-viewer/feature-viewer.min.js' %}"></script>
     <script>
         var options = {
         physics: {
@@ -40,7 +29,17 @@
         edges:{smooth: false}
         };
 
-        {{ networkjs|safe }}
+        var nodes = [
+        {id: 1, label: 'H194', value: 9, color:'#9180ff'},
+        {id: 2, label: 'G202', value: 10, color:'#9180ff'},
+        {id: 3, label: 'E193', value: 8, color:'#9180ff'},
+        {id: 4, label: 'D182', value: 54, color:'#7fffa1'},
+        {id: 5, label: 'D183', value: 55, color:'#7fffa1'}];
+
+        var edges = [
+        {from: 3, to: 2, color:{color:'green'}, title: 84.84848484848484},
+        {from: 1, to: 2, color:{color:'green'}, title: 90.9090909090909},
+        {from: 3, to: 1, color:{color:'green'}, title: 93.33333333333333}];
     </script>
     <script src="{% static 'visjs/vis.js' %}"></script>
     <link rel="stylesheet" href="{% static 'visjs/vis.css' %}" type="text/css">
@@ -77,36 +76,16 @@
             </div>
         </div>
 
-        <div id="heatmap">
-            <div id="table" class="contains"></div>
-        </div>
-
         <div id="communities" class="margin_top" style="clear: both">
+            <h2>Communities</h2>
             Select the cutoff:
-            <select id="select_cut" onchange="changeScore()">
-                {% for conformation in conformations %}
-                <option value="{{ conformation.score }}" {% if current_conformation.score == conformation.score %} selected {% endif %}>{{ conformation.score }}</option>
-
-                {% endfor %}
+            <select id="select_cut">
+                <option>0.75</option>
+                <option>0.80</option>
+                <option>0.85</option>
             </select>
 
-            <div id="Network" class="margin_top">
-                <h2>Network</h2>
-                <div id="wrapper">
-                    <div id="mynetwork"></div>
-                    <div id="loadingBar">
-                        <div class="outerBorder">
-                            <div id="text">0%</div>
-                            <div id="border">
-                                <div id="bar"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="comm_pos" style="margin-top: 20px">
-                <h2>Communities</h2>
+            <div id="comm_pos">
                 <div id="fv1"></div>
                 <script>
                     {{ prot_vist_src|safe }}
@@ -125,21 +104,28 @@
                     {% for comm in communities %}
                         <tr>
                             <td>Community {{ forloop.counter }}</td>
-                            <td>{{ comm.residues|fix_residue }}</td>
+                            <td>{{ comm }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
-
-        <div id="matrice_list">
-            {% for comm in communities %}
-                <h3>Community {{ forloop.counter }}</h3>
-                <div><div id="heatmap_{{ forloop.counter }}" class="contains"></div></div>
-            {% endfor %}
-        </div>
         </div>
 
+        <div id="Network" class="margin_top">
+            <h2>Network</h2>
+            <div id="wrapper">
+                <div id="mynetwork"></div>
+                <div id="loadingBar">
+                    <div class="outerBorder">
+                        <div id="text">0%</div>
+                        <div id="border">
+                            <div id="bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div id="references" class="margin_top">
             {% if references|length > 0 %}
@@ -158,12 +144,6 @@
 
 {% block foot_links %}
 <script>
-function changeScore() {
-  var value = document.getElementById("select_cut").value;
-  var url = '//' + location.host + location.pathname + "?score=" + value;
-  window.location = url;
-}
-
 $(function() {
      var URL = "http://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&origin=*&exintro=&titles={{ wiki_title }}";
      $.ajax({
@@ -191,15 +171,4 @@ $(function() {
     });
  });
 </script>
-<script>
-    {{ matrix|safe }}
-
-
-    $( document ).ready(function() {
-        {% for comm in communities %}
-            draw_hm("#heatmap_{{ forloop.counter }}",comm_{{ forloop.counter0 }},'{{ forloop.counter0 }}');
-        {% endfor %}
-    });
-</script>
-<script src="{% static 'heatmap/render.js' %}"></script>
 {% endblock %}
