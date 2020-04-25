@@ -15,10 +15,15 @@
             consequat etiam lorem ipsum dolor sit amet nullam.</p>
         </article>
 
+        <div id="search" class="row" style="margin-top: 20px; margin-bottom: 20px; float: right">
+            <label for="txtPfam" style="padding-top: 8px; margin-right: 7px;">Pfam Accession:</label>
+            <input type="text" id="txtPfam" name="txtPfam" style="width: 150px; height: 40px">
+            <a href="#" class="button" style="height: 40px; margin-left: 10px;">Search</a>
+        </div>
 
+        <div id="pfam_content" class="container" style="clear: both">
+            <h2>Protein Families</h2>
 
-        <h2>Protein Families</h2>
-        <div id="pfam_content" class="container">
             <nav id="pagination">
                 <ul class="pagination">
                     {% if pfam_list.has_previous %}
@@ -80,7 +85,6 @@
                 </table>
             </div>
         </div>
-        <a href="#" class="button">More Random Links</a>
 
     </div>
 
