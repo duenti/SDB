@@ -1,0 +1,69 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "SDB API",
+    "description": "Access proteins and families coevolutionary data with the SDB API",
+    "version": "1.0.0"
+  },
+  "schemes": [
+    "http"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/family/{id}": {
+      "get": {
+        "operationId": "family",
+        "summary": "SDB data for a protein family",
+        "description": "This endpoint takes a Pfam ID or accession as input and return all the general information and SDB data for the selected family.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A Pfam ID or accession. Example: PF00062 or Lys.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Family Entry"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          },
+          "default": {
+            "description": "unexpected error"
+          }
+        }
+      }
+    },"/api/sequence/{id}": {
+      "get": {
+        "operationId": "sequence",
+        "summary": "SDB data for a protein sequence",
+        "description": "This endpoint takes a UniProtKb ID or accession as input and return all the general information and SDB data for the selected protein.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A UniProtKb ID or accession. Example: LYSC_CHICK or P00698.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Sequence entry"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          },
+          "default": {
+            "description": "unexpected error"
+          }
+        }
+      }
+    }
+  }
+}

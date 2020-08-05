@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    SDB: Specificity Determinant Data Base &lt; Rest API
+{% endblock %}
+
+{% block links %}
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css" />
+{% endblock %}
+
+{% block content %}
+    <div id="main" class="small-12 medium-9 columns"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+    <script>
+    const ui = SwaggerUIBundle({
+        url: "api/schema",
+        dom_id: '#main',
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIBundle.SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout",
+        requestInterceptor: (request) => {
+          request.headers['X-CSRFToken'] = "{{ csrf_token }}"
+          return request;
+        }
+      })
+    </script>
+{% endblock %}

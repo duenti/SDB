@@ -63,6 +63,14 @@ FROM pfam_32_0.other_reg AS t
 WHERE t.pfamseq_acc='{seqname}'
 """
 
+auto_markup = {
+    1: 'Active site',
+    2: 'Pfam predicted active site',
+    3: 'UniProt predicted active site',
+    4: 'Metal ion binding',
+    5: 'UniProt predicted metal ion binding'
+}
+
 def getAlignSequence(pfam_id, fullseq_id):
     # Load MSA
     msa_dir = FTP_DIR + pfam_id + "/msa.dic"
@@ -88,8 +96,6 @@ def alignCommunity2SeqCommunity(comm_str, sequence, seq_start):
             missmatches += ams_aa + str(seq_pos) + "(" + comm_aa + ") "
 
     return matches, missmatches
-
-
 
 
 

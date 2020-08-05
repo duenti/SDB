@@ -2,6 +2,7 @@ from sdb.models import *
 from django.core.management.base import BaseCommand
 from glob import glob
 import os
+from os import path
 
 RESULTS_PATH = "/Volumes/Fast SSD/Pfam32/"
 
@@ -58,9 +59,18 @@ def load(pfam_id):
 
     #ADD LOGGER
 
+def check_results(dir, pfam_id):
+    if path.exists(dir + "/results"):
+        if Pfama.objects.filter(pfama_acc=pfam_id).count() > 0:
+            pfam = Pfama.objects.filter(pfama_acc=pfam_id)[0]
+            pfam.sdb = True
+            pfam.save()
+            print(pfam_id)
+
 class Command(BaseCommand):
     def handle(self, **options):
         dirs = glob(RESULTS_PATH + "*")
         for family_dir in dirs:
             pfam_id = family_dir.split('/')[-1]
-            load(pfam_id)
+            check_results(family_dir, pfam_id)
+            #load(pfam_id)

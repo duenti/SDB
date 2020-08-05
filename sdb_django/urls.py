@@ -19,9 +19,19 @@ from django.conf.urls import url
 from sdb.views import *
 
 urlpatterns = [
+    #API
+    url(r'api/schema', api_schema),
+    url(r'api/family/(?P<family>.+)', api_family),
+    url(r'api/sequence/(?P<sequence_name>.+)', api_sequence),
+    url(r'api', api_doc),
+
     path('admin/', admin.site.urls),
     url(r'^$', home_load),
-    url(r'family/(?P<family>PF\d+)', family_load),
-    url(r'sequence/(?P<sequence_name>.*)', sequence_load),
+    url(r'family/(?P<family>.+)', family_load),
+    url(r'sequence/(?P<sequence_name>.+)', sequence_load),
+    url(r'search/(?P<term>.+)', search),
+
+    url(r'test', test_page),
+
 
 ]

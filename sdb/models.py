@@ -401,6 +401,7 @@ class Pfama(models.Model):
     number_rp35 = models.IntegerField(blank=True, null=True)
     number_rp55 = models.IntegerField(blank=True, null=True)
     number_rp75 = models.IntegerField(blank=True, null=True)
+    sdb = models.BooleanField()
 
     class Meta:
         managed = False

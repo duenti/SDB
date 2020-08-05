@@ -1,9 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from sdb.models import *
 from sdb.util import *
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 import pickle
 from sdb_django.settings import FTP_DIR
+from django.db.models import Q
+import json
 
 # 'global' variable storing amount of objects per page
 per_page = 25
@@ -22,9 +25,13 @@ def home_load(request):
     context = {}
     context['sidebar'] = True
 
+    context['sdb_n'] = Pfama.objects.filter(sdb=True).count()
+    context['pfam_n'] = Pfama.objects.all().count()
+    context['sdb_fraction'] = int((context['sdb_n']/context['pfam_n'])*100)
+
 
     #paginator
-    context['pfam_list'] = Pfama.objects.all()
+    context['pfam_list'] = Pfama.objects.filter(sdb=True)
     paginator = Paginator(context['pfam_list'], per_page)
     page = 1
     if 'page' in request.GET:
@@ -42,9 +49,11 @@ def home_load(request):
 
 def family_load(request,family):
     context = {}
-    pfam = Pfama.objects.get(pk=family)
+    #pfam = Pfama.objects.get(pk=family)
+    pfam = Pfama.objects.get(Q(pfama_acc=family)|Q(pfama_id=family))
     pfam_id = pfam.pfama_id
     pfam_acc = pfam.pfama_acc
+    family = pfam_acc
     wiki_title = ""
 
 
@@ -114,11 +123,15 @@ def family_load(request,family):
 def sequence_load(request,sequence_name):
     context = {}
     context['name'] = sequence_name
-    uniprot = Uniprot.objects.get(uniprot_acc=sequence_name)
+    #uniprot = Uniprot.objects.get(uniprot_acc=sequence_name)
+    uniprot = Uniprot.objects.get(Q(uniprot_acc=sequence_name)|Q(uniprot_id=sequence_name))
+    sequence_name = uniprot.uniprot_acc
     context['uniprot'] = uniprot
 
-    #TEMP
-    score = 0.6
+    if 'score' in request.GET:
+        score = request.GET['score']
+    else:
+        score = 0.0
 
     #Get all families
     pfam_communities = {}
@@ -137,14 +150,16 @@ def sequence_load(request,sequence_name):
                 pos_start = uniprot_range.seq_start
                 pos_end = uniprot_range.seq_end
                 interval_str = str(pos_start) + " - " + str(pos_end)
-                #print(interval_str)
 
                 fullseq_id = uniprot.uniprot_id + "/" + str(pos_start) + "-" + str(pos_end)
                 align_seq = getAlignSequence(pfam_id, fullseq_id)
                 if len(align_seq) > 0:
                     conformations = Conformation.objects.filter(pfam_id=pfam_id)
                     if len(conformations) > 0:
-                        current_conformation = conformations.all()[0]  # TEMP
+                        if conformations.filter(score__gte=score).count() > 0:
+                            current_conformation = conformations.filter(score__gte=score).order_by("score")[0]
+                        else:
+                            current_conformation = conformations.all().order_by("score")[0]
                         ams_communities = current_conformation.community_set.all()
                         if ams_communities.count() > 0:
                             interval_comm = []
@@ -173,3 +188,242 @@ def sequence_load(request,sequence_name):
 
 
     return render(request, template_name="sequence.html", context=context)
+
+
+def search(request,term):
+    term = term.strip()
+    if Pfama.objects.filter(Q(pfama_acc=term)|Q(pfama_id=term)).count() > 0:
+        return redirect("family/" + term)
+    elif Uniprot.objects.filter(Q(uniprot_acc=term)|Q(uniprot_id=term)).count() > 0:
+        return redirect("sequence/" + term)
+    return render(request, template_name="notfound.html")
+
+
+#####API#####
+def api_doc(request):
+    context = {}
+    context['sidebar'] = True
+    return render(request, "api.html", context)
+
+def api_schema(request):
+    return render(request,'openapi_schema_local.json', content_type='application/json')
+
+def api_family(request, family):
+    result = {'pfam': {}}
+
+    if Pfama.objects.filter(Q(pfama_acc=family) | Q(pfama_id=family)).count() > 0:
+        pfam = Pfama.objects.get(Q(pfama_acc=family) | Q(pfama_id=family))
+        pfam_id = pfam.pfama_id
+        result['pfam']['id'] = pfam_id
+        pfam_acc = pfam.pfama_acc
+        result['pfam']['accession'] = pfam_acc
+        result['pfam']['description'] = pfam.description
+        result['pfam']['deposited'] = pfam.deposited_by
+        result['pfam']['seed_source'] = pfam.seed_source
+        result['pfam']['type'] = pfam.type
+        result['pfam']['comment'] = pfam.comment
+        result['pfam']['sequence_GA'] = pfam.sequence_ga
+        result['pfam']['domain_GA'] = pfam.domain_ga
+        result['pfam']['sequence_TC'] = pfam.sequence_tc
+        result['pfam']['domain_TC'] = pfam.domain_tc
+        result['pfam']['sequence_NC'] = pfam.sequence_nc
+        result['pfam']['domain_NC'] = pfam.domain_nc
+        result['pfam']['build_method'] = pfam.buildmethod
+        result['pfam']['model_length'] = pfam.model_length
+        result['pfam']['search_method'] = pfam.searchmethod
+        result['pfam']['msv_lambda'] = pfam.msv_lambda
+        result['pfam']['msv_mu'] = pfam.msv_mu
+        result['pfam']['viterbi_lambda'] = pfam.viterbi_lambda
+        result['pfam']['viterbi_mu'] = pfam.viterbi_mu
+        result['pfam']['forward_lambda'] = pfam.forward_lambda
+        result['pfam']['forward_tau'] = pfam.forward_tau
+        result['pfam']['num_seed'] = pfam.num_seed
+        result['pfam']['num_full'] = pfam.num_full
+        result['pfam']['version'] = pfam.version
+        result['pfam']['number_archs'] = pfam.number_archs
+        result['pfam']['number_species'] = pfam.number_species
+        result['pfam']['number_ncbi'] = pfam.number_ncbi
+        result['pfam']['number_meta'] = pfam.number_meta
+        result['pfam']['average_length'] = pfam.average_length
+        result['pfam']['average_coverage'] = pfam.average_coverage
+        result['pfam']['consensus'] = pfam.full_consensus
+        result['pfam']['SDB'] = bool(pfam.sdb)
+        family = pfam_acc
+
+        if result['pfam']['SDB']:
+            result['SDB'] = {}
+            conformations = Conformation.objects.filter(pfam_id=family)
+            if 'score' in request.GET:
+                current_conformation = conformations.filter(score__gte=request.GET['score']).order_by("score")[0]
+            else:
+                try:
+                    current_conformation = conformations.filter(score__gte=0.8).order_by("score")[0]
+                except:
+                    current_conformation = conformations.all().order_by("-score")[0]
+
+            result['SDB']['score'] = current_conformation.score
+            result['SDB']['num_residues'] = current_conformation.N
+            result['SDB']['communities'] = {'msa_num': []}
+
+            # Load MSA
+            msa_dir = FTP_DIR + pfam.pfama_acc + "/msa.dic"
+            with open(msa_dir, 'rb') as config_dictionary_file:
+                msa = pickle.load(config_dictionary_file)
+
+            for community in current_conformation.community_set.all():
+                result['SDB']['communities']['msa_num'].append(community.get_residues())
+
+                for seqname,sequence in msa.items():
+                    offset = int(seqname.split('/')[1].split('-')[0])
+                    seq_comm = alignCommunity2SeqCommunity(community.residues, sequence, offset)
+                    if seqname in result['SDB']['communities']:
+                        result['SDB']['communities'][seqname]['matches'].append(seq_comm[0].strip().split())
+                        result['SDB']['communities'][seqname]['unmatches'].append(
+                            seq_comm[1].strip().split())
+                    else:
+                        result['SDB']['communities'][seqname] = {'matches': [], 'unmatches': []}
+                        result['SDB']['communities'][seqname]['matches'].append(seq_comm[0].strip().split())
+                        result['SDB']['communities'][seqname]['unmatches'].append(
+                            seq_comm[1].strip().split())
+
+
+    json_string = json.dumps(result, sort_keys=True, indent=4)
+
+    return HttpResponse(json_string, content_type="application/json")
+
+
+
+def api_sequence(request, sequence_name):
+    result = {'sequence': {}}
+
+    if Uniprot.objects.filter(Q(uniprot_acc=sequence_name) | Q(uniprot_id=sequence_name)).count() > 0:
+        uniprot = Uniprot.objects.get(Q(uniprot_acc=sequence_name) | Q(uniprot_id=sequence_name))
+        result['sequence']['id'] = uniprot.uniprot_id
+        result['sequence']['accession'] = uniprot.uniprot_acc
+        result['sequence']['description'] = uniprot.description
+        result['sequence']['evidence'] = Evidence.objects.get(evidence=uniprot.evidence).description
+        result['sequence']['length'] = uniprot.length
+        result['sequence']['species'] = uniprot.species
+        result['sequence']['taxonomy'] = uniprot.taxonomy
+        result['sequence']['ncbi_id'] = uniprot.ncbi_taxid
+        result['sequence']['fragment'] = bool(uniprot.is_fragment)
+        result['sequence']['sequence'] = uniprot.sequence.decode("utf-8")
+        result['sequence']['reference_proteome'] = bool(uniprot.ref_proteome)
+        result['sequence']['complete_proteome'] = bool(uniprot.complete_proteome)
+        result['sequence']['ncbi_id'] = uniprot.ncbi_taxid
+
+
+        #Disulfide bonds
+        sql = disulfide_sequence_SQL.format(seqname=uniprot.uniprot_acc)
+        disulfide_list = PfamseqDisulphide.objects.raw(sql)
+        if len(disulfide_list) > 0:
+            result['sequence']['disulfide'] = []
+            for disulfide_reg in disulfide_list:
+                result['sequence']['disulfide'].append({'start': disulfide_reg.bond_start, 'end': disulfide_reg.bond_end})
+
+        #Sites
+        sql = sites_sequence_SQL.format(seqname=uniprot.uniprot_acc)
+        sites_list = PfamseqMarkup.objects.raw(sql)
+        if len(sites_list) > 0:
+            result['sequence']['sites'] = []
+            for site_reg in sites_list:
+                site = {
+                    'position': site_reg.residue,
+                    'annotation': site_reg.annotation,
+                    'markup': auto_markup[site_reg.auto_markup]
+                }
+                result['sequence']['sites'].append(site)
+
+        #Regions
+        sql = region_sequence_SQL.format(seqname=uniprot.uniprot_acc)
+        region_list = OtherReg.objects.raw(sql)
+        if len(region_list) > 0:
+            result['sequence']['regions'] = []
+            for region_reg in region_list:
+                site = {
+                    'start': region_reg.seq_start,
+                    'end': region_reg.seq_end,
+                    'type': region_reg.type_id,
+                    'source': region_reg.source_id
+                }
+                result['sequence']['regions'].append(site)
+
+        #SDB
+
+        #Get all families
+        uniprots_sequence = UniprotRegFull.objects.filter(uniprot_acc=uniprot.uniprot_acc)
+        pfam_acc_list = uniprots_sequence.values('pfama_acc').distinct()
+
+        if pfam_acc_list.count() > 0:
+            result['sequence']['families'] = []
+
+            for pfam_dic in pfam_acc_list:
+                result_pfam = {'pfam': {}}
+                pfam_acc = pfam_dic['pfama_acc']
+                pfam = Pfama.objects.get(pfama_acc=pfam_acc)
+
+                result_pfam['pfam']['id'] = pfam.pfama_id
+                result_pfam['pfam']['accession'] = pfam_acc
+                result_pfam['pfam']['description'] = pfam.description
+
+                uniprot_ranges = uniprots_sequence.filter(pfama_acc=pfam_acc).order_by("seq_start")
+                if uniprot_ranges.count() > 0:
+                    result_pfam['pfam']['subdomain'] = []
+
+                    for uniprot_range in uniprot_ranges:
+                        pos_start = uniprot_range.seq_start
+                        pos_end = uniprot_range.seq_end
+                        subdomain = {
+                            'start': pos_start,
+                            'end': pos_end
+                        }
+                        fullseq_id = uniprot.uniprot_id + "/" + str(pos_start) + "-" + str(pos_end)
+                        align_seq = getAlignSequence(pfam_acc, fullseq_id)
+                        if len(align_seq) > 0:
+                            subdomain['aligned_sequence'] = align_seq
+
+                            conformations = Conformation.objects.filter(pfam_id=pfam_acc)
+                            if len(conformations) > 0:
+                                if 'score' in request.GET:
+                                    current_conformation = \
+                                    conformations.filter(score__gte=request.GET['score']).order_by("score")[0]
+                                else:
+                                    try:
+                                        current_conformation = conformations.filter(score__gte=0.8).order_by("score")[0]
+                                    except:
+                                        current_conformation = conformations.all().order_by("-score")[0]
+
+                                subdomain['SDB'] = {}
+                                subdomain['SDB']['score'] = current_conformation.score
+                                subdomain['SDB']['num_residues'] = current_conformation.N
+
+                                ams_communities = current_conformation.community_set.all()
+                                if ams_communities.count() > 0:
+                                    subdomain['SDB']['communities'] = []
+                                    for community in ams_communities:
+                                        matches, missmatches = alignCommunity2SeqCommunity(community.residues,
+                                                                                           align_seq, pos_start)
+                                        community_dic = {
+                                            'msa_numbering': community.get_residues(),
+                                            'seq_numbering': {
+                                                'matches': matches,
+                                                'unmatches': missmatches
+                                            }
+                                        }
+
+                                        subdomain['SDB']['communities'].append(community_dic)
+
+                        result_pfam['pfam']['subdomain'].append(subdomain)
+
+                result['sequence']['families'].append(result_pfam)
+
+    json_string = json.dumps(result, sort_keys=True, indent=4)
+
+    return HttpResponse(json_string, content_type="application/json")
+
+
+# Create your views here.
+def test_page(request):
+    context = {}
+    context['sidebar'] = False
+    return render(request,'test.html', context=context)
