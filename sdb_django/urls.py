@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.conf.urls import url
 from sdb.views import *
 
@@ -30,8 +30,10 @@ urlpatterns = [
     url(r'family/(?P<family>.+)', family_load),
     url(r'sequence/(?P<sequence_name>.+)', sequence_load),
     url(r'search/(?P<term>.+)', search),
+    url(r'about', page_load, {'template_name': 'about.html'}),
 
-    url(r'test', test_page),
+
+    url(r'feedback', page_load, {'template_name': 'feedback.html'}),
 
 
 ]

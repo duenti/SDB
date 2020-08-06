@@ -136,8 +136,6 @@ STATICFILES_DIRS = [
 ]
 
 FTP_DIR="/Volumes/Fast SSD/Pfam32/"
-
-import pymysql
-pymysql.install_as_MySQLdb()
+#FTP_DIR="/localstorage/SDB32/Pfam32/"
 
 django_heroku.settings(locals())

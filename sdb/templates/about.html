@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    SDB: Specificity Determinant Data Base &lt; About
+{% endblock %}
+
+{% block content %}
+    {% load static %}
+    <div id="main" class="small-12 medium-9 columns">
+        <div class="container" style="margin-bottom:10px; font-size: small;">
+            <div class="row">
+              <div class="block" >
+                <img src="{% static 'images/me.png' %}" height="165px">
+                <p style="font-size: medium;"><b>Néli Fonseca</b></p>
+                <p  style="font-size: smaller;">Computer Scientist<br/>PhD student at UFMG<br/>Scientific Programmer at EBI</p>
+              </div>
+              <div class="block" >
+                  <img src="{% static 'images/marcelo.png' %}" height="165px">
+                <p style="font-size: medium;"><b>Marcelo Querino</b></p>
+                <p  style="font-size: smaller;">Biologist<br/>PhD student at UFMG</p>
+              </div>
+              <div class="block">
+                  <img src="{% static 'images/bleicher.jpg' %}" height="165px">
+                <p style="font-size: medium;"><b>Lucas Bleicher, PhD</b></p>
+                <p  style="font-size: smaller;">Computer Scientist<br/>Assistant Professor at UFMG</p>
+              </div>
+            </div>
+	  	</div>
+    </div>
+{% endblock %}

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 WSGI config for sdb_django project.
 
