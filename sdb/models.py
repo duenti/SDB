@@ -851,6 +851,7 @@ class Conformation(models.Model):
     score = models.FloatField()#Cut value
     N = models.IntegerField()
 
+
 class Community(models.Model):
     residues = models.TextField()
     conformation = models.ForeignKey(Conformation,on_delete=models.CASCADE)
@@ -858,8 +859,9 @@ class Community(models.Model):
     def get_residues(self):
         return self.residues.replace("_","").split()
 
+    def __str__(self):
+        self.residues.replace("_","")
+
     def get_residues_str(self):
         self.residues.replace("_","")
 
-    def __str__(self):
-        self.residues.replace("_","")

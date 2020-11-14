@@ -29,6 +29,15 @@ AND bond_start >= seq_start
 AND bond_end <= seq_end
 """
 
+disulfide_SQL2 = """
+SELECT t2.pfamseq_acc,seq_start,seq_end,bond_start,bond_end FROM pfamseq_disulphide as t1,
+(SELECT pfamseq_acc, seq_start, seq_end FROM pfamA_reg_full_significant WHERE pfamA_reg_full_significant.pfamA_acc =(
+SELECT pfamA_acc FROM pfamA WHERE pfamA_id = "{pfam_id}")) as t2
+WHERE t1.pfamseq_acc=t2.pfamseq_acc
+AND bond_start >= seq_start
+AND bond_end <= seq_end
+"""
+
 sites_SQL = """
 SELECT pfamseq_id,seq_start,seq_end,residue,auto_markup,annotation FROM pfamseq_markup as t1,
 (SELECT pfamseq_acc, seq_start, seq_end FROM pfamA_reg_full_significant WHERE pfamA_reg_full_significant.pfamA_acc =(
@@ -36,6 +45,14 @@ SELECT pfamA_acc FROM pfamA WHERE pfamA_id = "{pfam_id}")) as t2,
 pfamseq as t3
 WHERE t1.pfamseq_acc=t2.pfamseq_acc
 and t3.pfamseq_acc = t1.pfamseq_acc
+and (t1.auto_markup=1 or t1.auto_markup=4)
+"""
+
+sites_SQL2 = """
+SELECT t2.pfamseq_acc,seq_start,seq_end,residue,auto_markup,annotation FROM pfamseq_markup as t1,
+(SELECT pfamseq_acc, seq_start, seq_end FROM pfamA_reg_full_significant WHERE pfamA_reg_full_significant.pfamA_acc =(
+SELECT pfamA_acc FROM pfamA WHERE pfamA_id = "{pfam_id}")) as t2
+WHERE t1.pfamseq_acc=t2.pfamseq_acc
 and (t1.auto_markup=1 or t1.auto_markup=4)
 """
 
@@ -132,14 +149,15 @@ def seq2alignPosition(sequence, pos, offset):
 def parseDisulfide(pfam_id, msa):
     bonds = set()
 
-    sql = disulfide_SQL.format(pfam_id=pfam_id)
+    sql = disulfide_SQL2.format(pfam_id=pfam_id)
 
     with connection.cursor() as cursor:
         cursor.execute(sql)
         result = cursor.fetchall()
 
     for name, s_start, s_end, b_start, b_end in result:
-        seqname = name + "/" + str(s_start) + "-" + str(s_end)
+        name_id = Pfamseq.objects.get(pfamseq_acc=name).pfamseq_id
+        seqname = name_id + "/" + str(s_start) + "-" + str(s_end)
         if seqname in msa:
             pos1 = seq2alignPosition(msa[seqname], b_start, s_start)
             pos2 = seq2alignPosition(msa[seqname], b_end, s_start)
@@ -152,14 +170,15 @@ def parseDisulfide(pfam_id, msa):
 def parseSites(pfam_id, msa):
     sites = (set(),set())#0 - Active, 1 - Metal Ion
 
-    sql = sites_SQL.format(pfam_id=pfam_id)
+    sql = sites_SQL2.format(pfam_id=pfam_id)
 
     with connection.cursor() as cursor:
         cursor.execute(sql)
         result = cursor.fetchall()
 
     for name, s_start, s_end, residue, type, annotation in result:
-        seqname = name + "/" + str(s_start) + "-" + str(s_end)
+        name_id = Pfamseq.objects.get(pfamseq_acc=name).pfamseq_id
+        seqname = name_id + "/" + str(s_start) + "-" + str(s_end)
         if seqname in msa:
             pos = seq2alignPosition(msa[seqname], residue, s_start)
 
