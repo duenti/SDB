@@ -431,18 +431,7 @@ def protein_table2(request, pfam_acc):
     return render(request, template_name="ajax/sequences_table.html", context=context)
 
 def protein_table(request, pfam_acc):
-    pfam = Pfama.objects.get(pfama_acc=pfam_acc)
-    sequences = set()
-
-    # Load MSA
-    msa_dir = FTP_DIR + pfam.pfama_acc + "/msa.dic"
-    with open(msa_dir, 'rb') as config_dictionary_file:
-        msa = pickle.load(config_dictionary_file)
-
-    for full_name in msa.keys():
-        name = full_name.split('/')[0]
-        sequence = Pfamseq.objects.get(pfamseq_id=name)
-        sequences.add((sequence.pfamseq_acc,sequence.pfamseq_id,sequence.description))
+    sequences = PfamaRegFullSignificant.objects.filter(pfama_acc="PF00062").values_list("pfamseq_acc","pfamseq_acc__pfamseq_id","pfamseq_acc__description")
 
     context = {'table': sequences}
 
