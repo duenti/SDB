@@ -414,7 +414,7 @@ def api_sequence(request, sequence_name):
     return HttpResponse(json_string, content_type="application/json")
 
 #########INTERNAL AJAX CALLS###########
-def protein_table(request, pfam_acc):
+def protein_table2(request, pfam_acc):
     table = []
     # Sequence table
     sql = '''
@@ -430,13 +430,30 @@ def protein_table(request, pfam_acc):
 
     return render(request, template_name="ajax/sequences_table.html", context=context)
 
+def protein_table(request, pfam_acc):
+    pfam = Pfama.objects.get(pfama_acc=pfam_acc)
+    sequences = set()
+
+    # Load MSA
+    msa_dir = FTP_DIR + pfam.pfama_acc + "/msa.dic"
+    with open(msa_dir, 'rb') as config_dictionary_file:
+        msa = pickle.load(config_dictionary_file)
+
+    for full_name in msa.keys():
+        name = full_name.split('/')[0]
+        sequence = Pfamseq.objects.get(pfamseq_id=name)
+        sequences.add((sequence.pfamseq_acc,sequence.pfamseq_id,sequence.description))
+
+    context = {'table': sequences}
+
+    return render(request, template_name="ajax/sequences_table.html", context=context)
+
 def protvista_js(request, pfam_id):
     pfam = Pfama.objects.get(pfama_id=pfam_id)
     pfam_acc = pfam.pfama_acc
 
     # Conformations
     conformations = Conformation.objects.filter(pfam_id=pfam_acc)
-    print(conformations)
 
     if 'score' in request.GET:
         current_conformation = conformations.filter(score__gte=request.GET['score']).order_by("score")[0]
