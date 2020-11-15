@@ -136,6 +136,6 @@ STATICFILES_DIRS = [
 ]
 
 FTP_DIR="/Volumes/Fast SSD/Pfam32/"
-#FTP_DIR="/localstorage/SDB32/Pfam32/"
+#FTP_DIR="//localstorage/SDB/data/"
 
 django_heroku.settings(locals())

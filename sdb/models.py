@@ -541,30 +541,6 @@ class PfamaRegFullInsignificant(models.Model):
         db_table = 'pfamA_reg_full_insignificant'
 
 
-class PfamaRegFullSignificant(models.Model):
-    auto_pfama_reg_full = models.AutoField(db_column='auto_pfamA_reg_full', primary_key=True)  # Field name made lowercase.
-    pfama_acc = models.CharField(db_column='pfamA_acc', max_length=7)  # Field name made lowercase.
-    pfamseq_acc = models.CharField(max_length=10)
-    seq_start = models.IntegerField()
-    seq_end = models.IntegerField()
-    ali_start = models.PositiveIntegerField()
-    ali_end = models.PositiveIntegerField()
-    model_start = models.IntegerField()
-    model_end = models.IntegerField()
-    domain_bits_score = models.FloatField()
-    domain_evalue_score = models.CharField(max_length=15)
-    sequence_bits_score = models.FloatField()
-    sequence_evalue_score = models.CharField(max_length=15)
-    cigar = models.TextField(blank=True, null=True)
-    in_full = models.IntegerField()
-    tree_order = models.IntegerField(blank=True, null=True)
-    domain_order = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'pfamA_reg_full_significant'
-
-
 class PfamaRegSeed(models.Model):
     pfama_acc = models.CharField(db_column='pfamA_acc', max_length=7)  # Field name made lowercase.
     pfamseq_acc = models.CharField(max_length=10)
@@ -644,6 +620,30 @@ class Pfamseq(models.Model):
         managed = False
         db_table = 'pfamseq'
 
+
+class PfamaRegFullSignificant(models.Model):
+    auto_pfama_reg_full = models.AutoField(db_column='auto_pfamA_reg_full', primary_key=True)  # Field name made lowercase.
+    pfama_acc = models.CharField(db_column='pfamA_acc', max_length=7)  # Field name made lowercase.
+    #pfamseq_acc = models.CharField(max_length=10)
+    pfamseq_acc = models.ForeignKey(Pfamseq,on_delete=models.CASCADE,db_column='pfamseq_acc',to_field='pfamseq_acc')
+    seq_start = models.IntegerField()
+    seq_end = models.IntegerField()
+    ali_start = models.PositiveIntegerField()
+    ali_end = models.PositiveIntegerField()
+    model_start = models.IntegerField()
+    model_end = models.IntegerField()
+    domain_bits_score = models.FloatField()
+    domain_evalue_score = models.CharField(max_length=15)
+    sequence_bits_score = models.FloatField()
+    sequence_evalue_score = models.CharField(max_length=15)
+    cigar = models.TextField(blank=True, null=True)
+    in_full = models.IntegerField()
+    tree_order = models.IntegerField(blank=True, null=True)
+    domain_order = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'pfamA_reg_full_significant'
 
 class PfamseqAntifam(models.Model):
     pfamseq_acc = models.CharField(primary_key=True, max_length=10)
