@@ -84,11 +84,6 @@ def family_load(request,family):
     sql = "SELECT *, interpro_id as id FROM interpro WHERE pfamA_acc='{pfam_acc}';"
     context['interpro'] = GeneOntology.objects.raw(sql.format(pfam_acc=pfam_acc))
 
-    #Load MSA
-    msa_dir = FTP_DIR + pfam.pfama_acc + "/msa.dic"
-    with open(msa_dir, 'rb') as config_dictionary_file:
-        msa = pickle.load(config_dictionary_file)
-
     #Load Network
     networkjs_dir = FTP_DIR + pfam.pfama_acc + "/results/networkjs/" + str(current_conformation.N) + ".ser" #TEMP
     with open(networkjs_dir, 'rb') as config_dictionary_file:
@@ -107,10 +102,6 @@ def family_load(request,family):
     #Communities
     context['communities'] = current_conformation.community_set.all()
     #context['communities'] = ["L46, A47, W291, L235, G282, Q126, I127, A85, L50, W78, C196, G123, C252, C314, C44, W135, S89, E88, C138, C223, F125, S115, C83, T93","G268, H260, E259, R262","A253, C328, W309","D248, D249","S72, G68"]
-
-    #ProtVista
-    context['prot_vist_src'] = generateProtVista(pfam,msa,current_conformation)
-
 
     #References
     context['references'] = getReferences(pfam_id)
