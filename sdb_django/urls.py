@@ -35,5 +35,8 @@ urlpatterns = [
 
     url(r'feedback', page_load, {'template_name': 'feedback.html'}),
 
+    #Internal Ajax
+    url(r'ajax/proteins/(?P<pfam_acc>.+)', protein_table, name="ajax_proteins"),
+    url(r'ajax/protvista_js/(?P<pfam_id>.+)', protvista_js, name="ajax_protvista_js"),
 
 ]

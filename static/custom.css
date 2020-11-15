@@ -185,3 +185,9 @@ h2{
     height: 450px;
     float: left;
 }
+
+.ajax_loading{
+    display:block;
+    margin:auto;
+    padding-top: 30px;
+}

@@ -48,6 +48,8 @@
     <link rel="stylesheet" href="{% static 'visjs/custom.css' %}" type="text/css">
     <script src="{% static 'visjs/custom.js' %}"></script>
     <script src="{% static 'visjs/run.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'MDB-Free_4.19.1/css/addons/datatables2.min.css' %}" type="text/css">
+    <script src="{% static 'MDB-Free_4.19.1/js/addons/datatables2.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -91,6 +93,13 @@
                 {% endfor %}
             </select>
 
+            <div class="margin_top">
+                <h2>Sequences</h2>
+                <div id="sequences_table">
+                    <!--Ajax load-->
+                </div>
+            </div>
+
             <div id="Network" class="margin_top">
                 <h2>Network</h2>
                 <div id="wrapper">
@@ -109,9 +118,14 @@
             <div id="comm_pos" style="margin-top: 20px">
                 <h2>Communities</h2>
                 <div id="fv1"></div>
+
+                <div id="protvista_script"></div>
+
+                <!--
                 <script>
                     {{ prot_vist_src|safe }}
                 </script>
+                -->
             </div>
 
             <div class="table-wrapper" class="margin_top">
@@ -140,7 +154,6 @@
             {% endfor %}
         </div>
         </div>
-
 
         <div id="references" class="margin_top">
             {% if references|length > 0 %}
@@ -201,6 +214,49 @@ $(function() {
             draw_hm("#heatmap_{{ forloop.counter }}",comm_{{ forloop.counter0 }},'{{ forloop.counter0 }}');
         {% endfor %}
     });
+
+    $(document).ready(function () {
+        let url = "{% url 'ajax_proteins' pfam_acc=family_acc  %}";
+        $.ajax({
+            url: url,
+            type: 'GET',
+            beforeSend: function() {
+                $('#sequences_table').html("<img src='{% static 'images/ajax-loader.gif' %}' class='ajax_loading' />");
+            },
+            success: (data) => {
+                $("#sequences_table").empty();
+                $("#sequences_table").append($(data).find("#ajax_sequences").html());
+                $('#sequences').DataTable();
+                $('.dataTables_length').addClass('bs-select');
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                $("#sequences_table").empty();
+                $("#sequences_table").append("<p>A problem ocurred while trying to generate this view. Please, try again later.</p>")
+            }
+        });
+    });
+
+    $(document).ready(function () {
+        let url = "{% url 'ajax_protvista_js' pfam_id=family_id  %}";
+        $.ajax({
+            url: url,
+            type: 'GET',
+            beforeSend: function() {
+                $('#protvista_script').html("<img src='{% static 'images/ajax-loader.gif' %}' class='ajax_loading' />");
+            },
+            success: (data) => {
+                $("#protvista_script").empty();
+                let protvista = $('<script>').html($(data).find("#protvista").text());
+                console.log(protvista);
+                $("#protvista_script").append(protvista);
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                $("#protvista_script").empty();
+                $("#protvista_script").append("<p>A problem ocurred while trying to generate this view. Please, try again later.</p>")
+            }
+        });
+    });
+
 </script>
 <script src="{% static 'heatmap/render.js' %}"></script>
 {% endblock %}

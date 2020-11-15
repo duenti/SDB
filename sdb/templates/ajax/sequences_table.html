@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SDB</title>
+</head>
+<body>
+    <div>
+        <div id="ajax_sequences">
+        <table id="sequences" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th class="th-sm">Accession</th>
+                    <th class="th-sm">UniprotKb ID</th>
+                    <th class="th-sm">Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for accession,from,to in table %}
+                    <tr>
+                        <td>{{ accession }}</td>
+                        <td>{{ from }}</td>
+                        <td>{{ to }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</body>
+</html>

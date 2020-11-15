@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from sdb.models import *
 from sdb.util import *
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 import pickle
@@ -117,6 +116,8 @@ def family_load(request,family):
     context['references'] = getReferences(pfam_id)
 
     context['family'] = pfam #Usar pfam_id nas consultas
+    context['family_acc'] = pfam_acc
+    context['family_id'] = pfam_id
     context['wiki_title'] = wiki_title
     return render(request, template_name="family.html", context=context)
 
@@ -421,6 +422,48 @@ def api_sequence(request, sequence_name):
 
     return HttpResponse(json_string, content_type="application/json")
 
+#########INTERNAL AJAX CALLS###########
+def protein_table(request, pfam_acc):
+    table = []
+    # Sequence table
+    sql = '''
+        SELECT pfamseq_acc,pfamseq_id,description FROM pfam_32_0.pfamseq
+        WHERE pfamseq.pfamseq_acc IN (
+        SELECT pfamseq_acc FROM pfamA_reg_full_significant WHERE pfamA_acc="{pfam_id}");
+        '''.format(pfam_id=pfam_acc)
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+    context = {'table': result}
+
+    return render(request, template_name="ajax/sequences_table.html", context=context)
+
+def protvista_js(request, pfam_id):
+    pfam = Pfama.objects.get(pfama_id=pfam_id)
+    pfam_acc = pfam.pfama_acc
+
+    # Conformations
+    conformations = Conformation.objects.filter(pfam_id=pfam_acc)
+    print(conformations)
+
+    if 'score' in request.GET:
+        current_conformation = conformations.filter(score__gte=request.GET['score']).order_by("score")[0]
+    else:
+        try:
+            current_conformation = conformations.filter(score__gte=0.8).order_by("score")[0]
+        except:
+            current_conformation = conformations.all().order_by("-score")[0]
+
+    # Load MSA
+    msa_dir = FTP_DIR + pfam.pfama_acc + "/msa.dic"
+    with open(msa_dir, 'rb') as config_dictionary_file:
+        msa = pickle.load(config_dictionary_file)
+
+    # ProtVista
+    context = {'prot_vist_src': generateProtVista(pfam, msa, current_conformation)}
+
+    return render(request, template_name="ajax/protvista.html", context=context)
 
 # Create your views here.
 def test_page(request):
