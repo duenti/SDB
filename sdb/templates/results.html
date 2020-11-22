@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    SDB: Specificity Determinant Data Base &lt; Sequence Search results
+{% endblock %}
+
+{% block content %}
+    <h2>Results</h2>
+    <div id="result"></div>
+{% endblock %}
+
+{% block foot_links %}
+<script>
+    $(document).ready(function () {
+        let url = "{% url 'hmmer'  %}";
+        url += "?seq={{ seq|safe }}";
+        $.ajax({
+            url: url,
+            type: 'GET',
+            //data: jQuery.param({'seq': "{{ seq }}"}),
+            beforeSend: function() {
+                $('#result').html("<img src='{% static 'images/ajax-loader.gif' %}' class='ajax_loading' />");
+            },
+            success: (data) => {
+                console.log($(data).find("#hmmer_data"));
+                $("#result").empty();
+                $("#result").append($(data).find("#hmmer_data").html());
+                //$('#hmmer_table').DataTable();
+                //$('.dataTables_length').addClass('bs-select');
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                $("#result").empty();
+                $("#result").append("<p>A problem ocurred while trying to generate this view. Please, try again later.</p>")
+            }
+        });
+    });
+</script>
+{% endblock %}

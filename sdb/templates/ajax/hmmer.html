@@ -1,0 +1,50 @@
+{% load tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SDB</title>
+</head>
+<body>
+    <div>
+        <div id="hmmer_data" class="table-wrapper">
+            <table id="hmmer_table" class="fl-table">
+                <thead>
+                    <th>ID</th>
+                    <th>Accession</th>
+                    <th>Description</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Ind.</th>
+                    <th>Cond.</th>
+                    <th>Link</th>
+                </thead>
+                <tbody>
+                    {% for hit in result.results.hits %}
+                        {% for domain in hit.domains %}
+                            {% if domain.cevalue|hyptest and domain.ievalue|hyptest %}
+                                <tr>
+                                    <td>{{ hit.name }}</td>
+                                    <td>{{ hit.acc }}</td>
+                                    <td>{{ hit.desc }}</td>
+                                    <td>{{ domain.ienv }}</td>
+                                    <td>{{ domain.jenv }}</td>
+                                    <td>{{ domain.ievalue }}</td>
+                                    <td>{{ domain.cevalue }}</td>
+                                    <td style="text-align: center">
+                                        {% if hit.link %}
+                                            <a href="{% url 'family' family=hit.acc  %}" target="_blank"><i class="far fa-plus-square"></i></a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    SDB: Specificity Determinant Data Base &lt; Sequence Search
+{% endblock %}
+
+{% block content %}
+    <h2>Sequence search</h2>
+    {% if invalid %}
+    <div class="alert alert-danger">
+        <strong>Error!</strong> {{ error_message }}.
+    </div>
+    {% endif %}
+    <form id="form" action="/results" method="post" class="margin_top">
+        {% csrf_token %}
+        <p>Paste your sequence in the fasta format:</p>
+        <textarea id="sequence" name="sequence" rows="8" style="margin-bottom: 20px;"></textarea>
+        <input type="submit" value="Search"class="button" style="height: 40px; float: right;">
+    </form>
+{% endblock %}

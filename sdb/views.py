@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from sdb.util import *
-from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import pickle
 from sdb_django.settings import FTP_DIR
 from django.db.models import Q
 import json
+import urllib
+import urllib.request
+from django.contrib import messages
 
 # 'global' variable storing amount of objects per page
 per_page = 25
@@ -199,6 +202,35 @@ def search(request,term):
         return redirect("sequence/" + term)
     return render(request, template_name="notfound.html")
 
+def hmm_results(request):
+    context = {}
+    context['sidebar'] = True
+
+    seq = ""
+    if 'sequence' in request.POST:
+        seq = request.POST["sequence"]
+        seq = seq.strip()
+
+    #Validation
+    if len(seq) == 0:
+        context['invalid'] = True
+        context['error_message'] = "The sequence can not be empty"
+        return render(request, template_name="hmmscan.html", context=context)
+    temp = seq.split('\n')
+    if len(temp) < 2 or seq[0] != ">":
+        context['invalid'] = True
+        context['error_message'] = "The sequence is in a invalid format"
+        return render(request, template_name="hmmscan.html", context=context)
+    else:
+        for subsequence in temp[1:]:
+            if not subsequence.strip().isalpha():
+                context['invalid'] = True
+                context['error_message'] = "The sequence is in a invalid format"
+                return render(request, template_name="hmmscan.html", context=context)
+
+    context = {'seq': seq.replace("\r","").replace("\n","_newline_").replace('=','_').replace('&','_')}
+
+    return render(request, template_name="results.html", context=context)
 
 #####API#####
 def api_doc(request):
@@ -471,6 +503,52 @@ def protvista_js(request, pfam_id):
     context = {'prot_vist_src': generateProtVista(pfam, msa, current_conformation)}
 
     return render(request, template_name="ajax/protvista.html", context=context)
+
+class SmartRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def http_error_302(self, req, fp, code, msg, headers):
+        return headers
+
+def hmmer(request):
+    opener = urllib.request.build_opener(SmartRedirectHandler())
+    urllib.request.install_opener(opener)
+
+    if 'seq' in request.GET:
+        seq = request.GET["seq"].replace("_newline_","\n")
+
+    parameters = {
+        'hmmdb': 'pfam',
+        # 'seq':">Seq\nMRSLLILVLCFLPLAALGKVFGRCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGSTDYGILQINSRWWCNDGRTPGSRNLCNIPCSALLSSDITASVNCAKKIVSDGNGMNAWVAWRNRCKGTDVQAWIRGCRL"
+        'seq': seq.replace('\\n', '\n')
+    }
+    parameters = json.dumps(parameters)
+    #parameters = 'hmmdb=pfam&seq=' + seq
+    enc_params = parameters.encode()
+
+
+    request_ebi = urllib.request.Request('https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan', data=enc_params,
+                                    headers={'content-type': 'application/json'})
+
+    results_url = urllib.request.urlopen(request_ebi).get('location')
+
+    modified_res_url = results_url + '?output=json'
+
+    results_request = urllib.request.Request(modified_res_url)
+    data = urllib.request.urlopen(results_request)
+    result_string = data.read()
+    result = json.loads(result_string)
+
+    for i,hit in enumerate(result['results']['hits']):
+        accession = hit['acc'].split('.')[0]
+        result['results']['hits'][i]['acc'] = accession
+        if Pfama.objects.get(pfama_acc=accession).sdb:
+            result['results']['hits'][i]['link'] = True
+        else:
+            result['results']['hits'][i]['link'] = False
+
+
+    context = {'result': result}
+
+    return render(request, template_name="ajax/hmmer.html", context=context)
 
 # Create your views here.
 def test_page(request):

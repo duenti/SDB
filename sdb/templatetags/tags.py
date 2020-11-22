@@ -26,3 +26,7 @@ def get1(value):
 @register.filter
 def keyvalue(dict, key):
     return dict[key]
+
+@register.filter
+def hyptest(stringvalue):
+    return float(stringvalue) < 1e-05
