@@ -13,6 +13,7 @@
                     <th class="th-sm">Accession</th>
                     <th class="th-sm">UniprotKb ID</th>
                     <th class="th-sm">Description</th>
+                    <th class="th-sm">Link</th>
                 </tr>
             </thead>
             <tbody>
@@ -21,6 +22,7 @@
                         <td>{{ accession }}</td>
                         <td>{{ from }}</td>
                         <td>{{ to }}</td>
+                        <td style="text-align: center"><a href="{% url 'sequence' sequence_name=accession  %}" target="_blank"><i class="far fa-plus-square"></i></a> </td>
                     </tr>
                 {% endfor %}
             </tbody>

@@ -28,7 +28,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^$', home_load),
     url(r'family/(?P<family>.+)', family_load),
-    url(r'sequence/(?P<sequence_name>.+)', sequence_load),
+    url(r'sequence/(?P<sequence_name>.+)', sequence_load, name="sequence"),
     url(r'search/(?P<term>.+)', search),
     url(r'about', page_load, {'template_name': 'about.html'}),
 

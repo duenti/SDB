@@ -50,6 +50,7 @@
     <script src="{% static 'visjs/run.js' %}"></script>
     <link rel="stylesheet" href="{% static 'MDB-Free_4.19.1/css/addons/datatables2.min.css' %}" type="text/css">
     <script src="{% static 'MDB-Free_4.19.1/js/addons/datatables2.min.js' %}"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.7/css/all.css" type="text/css">
 {% endblock %}
 
 {% block content %}
@@ -92,6 +93,17 @@
 
                 {% endfor %}
             </select>
+
+            <div id="downloads" class="margin_top">
+                <h3>Downloads</h3>
+                <ul>
+                    <li><a href="{% static msa_file %}" download="{{ family.pfama_acc }}_full.txt">Full alignment</a></li>
+                    <li><a href="{% static filtered_file %}" download="{{ family.pfama_acc }}_filtered.txt">Filtered alignment</a></li>
+                    <li><a href="{% static cluster_file %}" download="{{ family.pfama_acc }}_clusters.txt">Clusters of sequences</a></li>
+                    <li><a href="{% static network_file %}" download="{{ family.pfama_acc }}_{{ current_conformation.score }}_network.txt">Network</a></li>
+                    <li><a href="{% static comm_file %}" download="{{ family.pfama_acc }}_{{ current_conformation.score }}_communities.txt">Communities</a></li>
+                </ul>
+            </div>
 
             <div class="margin_top">
                 <h2>Sequences</h2>

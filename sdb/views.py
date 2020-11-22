@@ -10,8 +10,6 @@ import json
 # 'global' variable storing amount of objects per page
 per_page = 25
 
-
-
 # Create your views here.
 def page_load(request, template_name):
     context = {}
@@ -106,15 +104,26 @@ def family_load(request,family):
     #References
     context['references'] = getReferences(pfam_id)
 
+    #Downloads links
+    context['msa_file'] = pfam.pfama_acc + "/msa.txt"
+    context['filtered_file'] = pfam.pfama_acc + "/filtered.txt"
+    context['cluster_file'] = pfam.pfama_acc + "/cluster"
+    context['network_file'] = pfam.pfama_acc + "/results/backbones/" + str(current_conformation.N)
+    context['comm_file'] = pfam.pfama_acc + "/results/communities/" + str(current_conformation.N)
+
+
     context['family'] = pfam #Usar pfam_id nas consultas
     context['family_acc'] = pfam_acc
     context['family_id'] = pfam_id
+    context['family_path'] = FTP_DIR + pfam.pfama_acc
     context['wiki_title'] = wiki_title
     return render(request, template_name="family.html", context=context)
 
 def sequence_load(request,sequence_name):
+    sequence_name = sequence_name.split('/')[0]
     context = {}
     context['name'] = sequence_name
+
     #uniprot = Uniprot.objects.get(uniprot_acc=sequence_name)
     uniprot = Uniprot.objects.get(Q(uniprot_acc=sequence_name)|Q(uniprot_id=sequence_name))
     sequence_name = uniprot.uniprot_acc
@@ -431,7 +440,8 @@ def protein_table2(request, pfam_acc):
     return render(request, template_name="ajax/sequences_table.html", context=context)
 
 def protein_table(request, pfam_acc):
-    sequences = PfamaRegFullSignificant.objects.filter(pfama_acc="PF00062").values_list("pfamseq_acc","pfamseq_acc__pfamseq_id","pfamseq_acc__description")
+    sequences = PfamaRegFullSignificant.objects.filter(pfama_acc=pfam_acc).values_list("pfamseq_acc","pfamseq_acc__pfamseq_id","pfamseq_acc__description")
+    #sequences = PfamaRegFullSignificant.objects.filter(pfama_acc=pfam_acc).values_list("pfamseq_acc",flat=True)
 
     context = {'table': sequences}
 
