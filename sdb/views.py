@@ -16,14 +16,17 @@ per_page = 25
 # Create your views here.
 def page_load(request, template_name):
     context = {}
-    context['sidebar'] = True
+    context['sidebar'] = False
+    context['sdb_n'] = Pfama.objects.filter(sdb=True).count()
+    context['pfam_n'] = Pfama.objects.all().count()
+    context['sdb_fraction'] = int((context['sdb_n'] / context['pfam_n']) * 100)
     return render(request,template_name, context=context)
 
 
 def home_load(request):
     template_name = "index.html"
     context = {}
-    context['sidebar'] = True
+    context['sidebar'] = False
 
     context['sdb_n'] = Pfama.objects.filter(sdb=True).count()
     context['pfam_n'] = Pfama.objects.all().count()

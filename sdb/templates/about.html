@@ -7,24 +7,52 @@
 {% block content %}
     {% load static %}
     <div id="main" class="small-12 medium-9 columns">
+        <article>
+            <h1>CEvADA</h1>
+            <p style="margin-left: 20px;">
+                CEvADA is a database of co-evolutionary clusters in conserved protein domains.
+                The current version is based in the <a href="https://pfam.xfam.org/">Pfam</a> 32.0 and all the data
+                was calculated using <a href="http://bioinfo.icb.ufmg.br:8080/conan">CONAN</a>. At the moment, CEvADA
+                contains {{ sdb_n }} entries, comprising {{ sdb_fraction }}% of the protein families available in Pfam.
+                More details about the calculation algorithms and examples of applications can be found
+                <a href="http://bioinfo.icb.ufmg.br:8080/conan/about.xhtml" target="_blank">here</a>.
+            </p>
+
+            <h1>Cite Us</h1>
+            <p style="margin-left: 20px;">
+                CEvADA is not published yet, although the manuscript is in preparation. For now, please cite the software
+                that was used to calculate the data:
+            </p>
+
+            <p class="citation">
+                <a href="https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btaa713/5891173" target="_blank" style="border: none">
+                Fonseca, N. J., Afonso, M. Q. L., Carrijo, L., & Bleicher, L. (2020). CONAN: a web application to detect
+                specificity determinants and functional sites by amino acids co-variation network analysis. <i>Bioinformatics</i>.
+                </a>
+            </p>
+
+        <h1>Team</h1>
         <div class="container" style="margin-bottom:10px; font-size: small;">
             <div class="row">
               <div class="block" >
                 <img src="{% static 'images/me.png' %}" height="165px">
-                <p style="font-size: medium;"><b>Néli Fonseca</b></p>
-                <p  style="font-size: smaller;">Computer Scientist<br/>PhD student at UFMG<br/>Scientific Programmer at EBI</p>
+                <div style="font-size: medium;"><b>Néli Fonseca, PhD</b></div>
+                <div  style="font-size: smaller; text-align: center">EMBL-EBI</div>
               </div>
               <div class="block" >
                   <img src="{% static 'images/marcelo.png' %}" height="165px">
-                <p style="font-size: medium;"><b>Marcelo Querino</b></p>
-                <p  style="font-size: smaller;">Biologist<br/>PhD student at UFMG</p>
+                <div style="font-size: medium;"><b>Marcelo Querino, MSc</b></div>
+                <p  style="font-size: smaller; text-align: center">UFMG</p>
               </div>
               <div class="block">
                   <img src="{% static 'images/bleicher.jpg' %}" height="165px">
-                <p style="font-size: medium;"><b>Lucas Bleicher, PhD</b></p>
-                <p  style="font-size: smaller;">Computer Scientist<br/>Assistant Professor at UFMG</p>
+                <div style="font-size: medium;"><b>Lucas Bleicher, PhD</b></div>
+                <p  style="font-size: smaller; text-align: center">UFMG</p>
               </div>
             </div>
 	  	</div>
+
+
+        </article>
     </div>
 {% endblock %}
