@@ -280,11 +280,11 @@ def api_family(request, family):
         result['pfam']['average_length'] = pfam.average_length
         result['pfam']['average_coverage'] = pfam.average_coverage
         result['pfam']['consensus'] = pfam.full_consensus
-        result['pfam']['SDB'] = bool(pfam.sdb)
+        result['pfam']['data'] = bool(pfam.sdb)
         family = pfam_acc
 
-        if result['pfam']['SDB']:
-            result['SDB'] = {}
+        if result['pfam']['data']:
+            result['data'] = {}
             conformations = Conformation.objects.filter(pfam_id=family)
             if 'score' in request.GET:
                 current_conformation = conformations.filter(score__gte=request.GET['score']).order_by("score")[0]
@@ -294,30 +294,35 @@ def api_family(request, family):
                 except:
                     current_conformation = conformations.all().order_by("-score")[0]
 
-            result['SDB']['score'] = current_conformation.score
-            result['SDB']['num_residues'] = current_conformation.N
-            result['SDB']['communities'] = {'msa_num': []}
+            result['data']['score'] = current_conformation.score
+            result['data']['num_residues'] = current_conformation.N
+            result['data']['sequences'] = []
+            result['data']['communities'] = {'msa_num': []}
 
             # Load MSA
             msa_dir = FTP_DIR + pfam.pfama_acc + "/msa.dic"
             with open(msa_dir, 'rb') as config_dictionary_file:
                 msa = pickle.load(config_dictionary_file)
 
-            for community in current_conformation.community_set.all():
-                result['SDB']['communities']['msa_num'].append(community.get_residues())
+            for seqname, sequence in msa.items():
+                seq_dic = {'name': seqname, 'sequence': sequence}
+                result['data']['sequences'].append(seq_dic)
 
-                for seqname,sequence in msa.items():
-                    offset = int(seqname.split('/')[1].split('-')[0])
-                    seq_comm = alignCommunity2SeqCommunity(community.residues, sequence, offset)
-                    if seqname in result['SDB']['communities']:
-                        result['SDB']['communities'][seqname]['matches'].append(seq_comm[0].strip().split())
-                        result['SDB']['communities'][seqname]['unmatches'].append(
-                            seq_comm[1].strip().split())
-                    else:
-                        result['SDB']['communities'][seqname] = {'matches': [], 'unmatches': []}
-                        result['SDB']['communities'][seqname]['matches'].append(seq_comm[0].strip().split())
-                        result['SDB']['communities'][seqname]['unmatches'].append(
-                            seq_comm[1].strip().split())
+            for community in current_conformation.community_set.all():
+                result['data']['communities']['msa_num'].append(community.get_residues())
+
+                # for seqname,sequence in msa.items():
+                #     offset = int(seqname.split('/')[1].split('-')[0])
+                #     seq_comm = alignCommunity2SeqCommunity(community.residues, sequence, offset)
+                #     if seqname in result['SDB']['communities']:
+                #         result['SDB']['communities'][seqname]['matches'].append(seq_comm[0].strip().split())
+                #         result['SDB']['communities'][seqname]['unmatches'].append(
+                #             seq_comm[1].strip().split())
+                #     else:
+                #         result['SDB']['communities'][seqname] = {'matches': [], 'unmatches': []}
+                #         result['SDB']['communities'][seqname]['matches'].append(seq_comm[0].strip().split())
+                #         result['SDB']['communities'][seqname]['unmatches'].append(
+                #             seq_comm[1].strip().split())
 
 
     json_string = json.dumps(result, sort_keys=True, indent=4)
@@ -426,13 +431,13 @@ def api_sequence(request, sequence_name):
                                     except:
                                         current_conformation = conformations.all().order_by("-score")[0]
 
-                                subdomain['SDB'] = {}
-                                subdomain['SDB']['score'] = current_conformation.score
-                                subdomain['SDB']['num_residues'] = current_conformation.N
+                                subdomain['data'] = {}
+                                subdomain['data']['score'] = current_conformation.score
+                                subdomain['data']['num_residues'] = current_conformation.N
 
                                 ams_communities = current_conformation.community_set.all()
                                 if ams_communities.count() > 0:
-                                    subdomain['SDB']['communities'] = []
+                                    subdomain['data']['communities'] = []
                                     for community in ams_communities:
                                         matches, missmatches = alignCommunity2SeqCommunity(community.residues,
                                                                                            align_seq, pos_start)
@@ -444,7 +449,7 @@ def api_sequence(request, sequence_name):
                                             }
                                         }
 
-                                        subdomain['SDB']['communities'].append(community_dic)
+                                        subdomain['data']['communities'].append(community_dic)
 
                         result_pfam['pfam']['subdomain'].append(subdomain)
 

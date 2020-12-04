@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SDB</title>
+    <title>CEvADA</title>
 </head>
 <body>
     <div>
@@ -33,7 +33,7 @@
                                     <td>{{ domain.cevalue }}</td>
                                     <td style="text-align: center">
                                         {% if hit.link %}
-                                            <a href="{% url 'family' family=hit.acc  %}" target="_blank"><i class="far fa-plus-square"></i></a>
+                                            <a href="{% url 'cevada:family' family=hit.acc  %}" target="_blank"><i class="far fa-plus-square"></i></a>
                                         {% else %}
                                             -
                                         {% endif %}

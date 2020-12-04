@@ -3,7 +3,7 @@
 {% load tags %}
 
 {% block title %}
-    SDB: Specificity Determinant Data Base &lt; Family
+    CEvADA: CoEvolution Analysis Data Archive &lt; Family
 {% endblock %}
 
 {% block links %}
@@ -228,7 +228,7 @@ $(function() {
     });
 
     $(document).ready(function () {
-        let url = "{% url 'ajax_proteins' pfam_acc=family_acc  %}";
+        let url = "{% url 'sdb:ajax_proteins' pfam_acc=family_acc  %}";
         $.ajax({
             url: url,
             type: 'GET',
@@ -249,7 +249,7 @@ $(function() {
     });
 
     $(document).ready(function () {
-        let url = "{% url 'ajax_protvista_js' pfam_id=family_id  %}";
+        let url = "{% url 'cevada:ajax_protvista_js' pfam_id=family_id  %}";
         $.ajax({
             url: url,
             type: 'GET',

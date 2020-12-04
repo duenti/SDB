@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    SDB: Specificity Determinant Data Base &lt; Sequence Search
+    CEvADA: CoEvolution Analysis Data Archive &lt; Sequence Search
 {% endblock %}
 
 {% block content %}
@@ -11,7 +11,7 @@
         <strong>Error!</strong> {{ error_message }}.
     </div>
     {% endif %}
-    <form id="form" action="/results" method="post" class="margin_top">
+    <form id="form" action="/cevada/results" method="post" class="margin_top">
         {% csrf_token %}
         <p>Paste your sequence in the fasta format:</p>
         <textarea id="sequence" name="sequence" rows="8" style="margin-bottom: 20px;"></textarea>

@@ -159,6 +159,10 @@ h2{
 }
 */
 
+.response-col_description{
+	max-width: 600px !important;
+}
+
 .fl-table a{
     color: black;
     border: none;

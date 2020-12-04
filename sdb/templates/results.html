@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-    SDB: Specificity Determinant Data Base &lt; Sequence Search results
+    CEvADA: CoEvolution Analysis Data Archive &lt; Sequence Search results
 {% endblock %}
 
 {% block content %}
@@ -13,7 +13,7 @@
 {% block foot_links %}
 <script>
     $(document).ready(function () {
-        let url = "{% url 'hmmer'  %}";
+        let url = "{% url 'cevada:hmmer'  %}";
         url += "?seq={{ seq|safe }}";
         $.ajax({
             url: url,

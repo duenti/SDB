@@ -1,8 +1,8 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "SDB API",
-    "description": "Access proteins and families coevolutionary data with the SDB API",
+    "title": "CEvADA API",
+    "description": "Access proteins and families coevolutionary data with the CEvADA API",
     "version": "1.0.0"
   },
   "schemes": [
@@ -12,11 +12,11 @@
     "application/json"
   ],
   "paths": {
-    "/api/family/{id}": {
+    "/cevada/api/family/{id}": {
       "get": {
         "operationId": "family",
-        "summary": "SDB data for a protein family",
-        "description": "This endpoint takes a Pfam ID or accession as input and return all the general information and SDB data for the selected family.",
+        "summary": "CEvADA data for a protein family",
+        "description": "This endpoint takes a Pfam ID or accession as input and return all the general information and CEvADA data for the selected family.",
         "parameters": [
           {
             "name": "id",
@@ -38,11 +38,11 @@
           }
         }
       }
-    },"/api/sequence/{id}": {
+    },"/cevada/api/sequence/{id}": {
       "get": {
         "operationId": "sequence",
-        "summary": "SDB data for a protein sequence",
-        "description": "This endpoint takes a UniProtKb ID or accession as input and return all the general information and SDB data for the selected protein.",
+        "summary": "CEvADA data for a protein sequence",
+        "description": "This endpoint takes a UniProtKb ID or accession as input and return all the general information and CEvADA data for the selected protein.",
         "parameters": [
           {
             "name": "id",
