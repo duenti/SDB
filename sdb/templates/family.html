@@ -109,6 +109,23 @@
                 <h2>Sequences</h2>
                 <div id="sequences_table">
                     <!--Ajax load-->
+
+                    <table id="sequences" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+                        <thead>
+                            <tr>
+                                <th class="th-sm">Accession</th>
+                                <th class="th-sm">Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for accession,seq in msa.items %}
+                                <tr>
+                                    <td>{{ accession }}</td>
+                                    <td style="text-align: center"><a href="{% url 'cevada:sequence' sequence_name=accession  %}" target="_blank"><i class="far fa-plus-square"></i></a> </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -228,13 +245,16 @@ $(function() {
     });
 
     $(document).ready(function () {
+        $('#sequences').DataTable();
+        $('.dataTables_length').addClass('bs-select');
+
         let url = "{% url 'sdb:ajax_proteins' pfam_acc=family_acc  %}";
         $.ajax({
             url: url,
             type: 'GET',
-            beforeSend: function() {
-                $('#sequences_table').html("<img src='{% static 'images/ajax-loader.gif' %}' class='ajax_loading' />");
-            },
+            //beforeSend: function() {
+            //    $('#sequences_table').html("<img src='{% static 'images/ajax-loader.gif' %}' class='ajax_loading' />");
+            //},
             success: (data) => {
                 $("#sequences_table").empty();
                 $("#sequences_table").append($(data).find("#ajax_sequences").html());
@@ -242,8 +262,9 @@ $(function() {
                 $('.dataTables_length').addClass('bs-select');
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) {
-                $("#sequences_table").empty();
-                $("#sequences_table").append("<p>A problem ocurred while trying to generate this view. Please, try again later.</p>")
+                console.log("Connection timed out.")
+                //$("#sequences_table").empty();
+                //$("#sequences_table").append("<p>Sorry, this alignment is too large and returned a connection timed out! You can try again by refreshing the page.</p>")
             }
         });
     });
@@ -264,7 +285,7 @@ $(function() {
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) {
                 $("#protvista_script").empty();
-                $("#protvista_script").append("<p>A problem ocurred while trying to generate this view. Please, try again later.</p>")
+                $("#protvista_script").append("<p>Sorry, this alignment is too large and returned a connection timed out! You can try again by refreshing the page.</p>")
             }
         });
     });

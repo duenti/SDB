@@ -110,6 +110,12 @@ def family_load(request,family):
     #References
     context['references'] = getReferences(pfam_id)
 
+    # Load MSA
+    msa_dir = FTP_DIR + pfam.pfama_acc + "/msa.dic"
+    with open(msa_dir, 'rb') as config_dictionary_file:
+        msa = pickle.load(config_dictionary_file)
+        context['msa'] = msa
+
     #Downloads links
     context['msa_file'] = pfam.pfama_acc + "/msa.txt"
     context['filtered_file'] = pfam.pfama_acc + "/filtered.txt"
