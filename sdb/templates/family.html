@@ -121,7 +121,7 @@
                             {% for accession,seq in msa.items %}
                                 <tr>
                                     <td>{{ accession }}</td>
-                                    <td style="text-align: center"><a href="{% url 'cevada:sequence' sequence_name=accession  %}" target="_blank"><i class="far fa-plus-square"></i></a> </td>
+                                    <td style="text-align: center"><a href="{% url 'cevada:sequence' sequence_name=accession|removeOffset  %}" target="_blank"><i class="far fa-plus-square"></i></a> </td>
                                 </tr>
                             {% endfor %}
                         </tbody>

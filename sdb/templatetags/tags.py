@@ -16,6 +16,10 @@ def removeBrackets(value):
     return value.split('{')[0]
 
 @register.filter
+def removeOffset(value):
+    return value.split('/')[0]
+
+@register.filter
 def get0(value):
     return value[0]
 
