@@ -322,7 +322,7 @@ h2 {
 
 .panel {
     padding: 0 18px;
-    display: block;
+    display: none;
     overflow: hidden;
 }
 
